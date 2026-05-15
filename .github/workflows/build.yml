@@ -13,7 +13,7 @@ jobs:
           theos-dir: theos
           theos-sdks: https://github.com/theos/sdks
       - name: Upload DEB
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: PixelHeart-deb
           path: packages/*.deb

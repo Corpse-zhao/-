@@ -1,28 +1,48 @@
-name: Build Tweak
+name: Build Theos Package
+
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
-      - name: Install Theos and dependencies
+      - name: Clean and prepare Theos directory
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git make libxml2-dev build-essential
-          git clone --recursive https://github.com/theos/theos.git ~/theos
-          cd ~/theos && git clone https://github.com/theos/sdks.git sdks
+          rm -rf $HOME/theos
+          mkdir -p $HOME/theos
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential ldid libtool automake autotools-dev libxml2-dev
+
+      - name: Install Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          cd $HOME/theos
+          # 拉取最新的 iOS SDKs（这里以 iOS 16.5 为例，适配你的 16.6 设备）
+          ./bin/install-sdk.sh 16.5
+
+      - name: Set environment variables
+        run: |
           echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
 
       - name: Build package
         run: |
           make clean
-          make package THEOS_PACKAGE_SCHEME=rootless
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
-          name: PixelHeart
-          path: packages/*.deb
+          name: deb-package
+          path: ./packages/*.deb

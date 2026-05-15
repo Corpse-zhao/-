@@ -1,0 +1,9 @@
+Package: com.zy.pixelheart
+Name: 像素心
+Version: 1.0
+Architecture: iphoneos-arm64e
+Description: 全局悬浮像素爱心 可拖动 自定义颜色大小呼吸效果
+Maintainer: ZY
+Author: ZY
+Section: Tweaks
+Depends: org.coolstar.rootless

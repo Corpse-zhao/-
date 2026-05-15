@@ -1,0 +1,19 @@
+name: Build PixelHeart
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Theos Build
+        uses: Randomblock1/theos-action@v1
+        with:
+          theos-dir: theos
+          theos-sdks: https://github.com/theos/sdks
+      - name: Upload DEB
+        uses: actions/upload-artifact@v3
+        with:
+          name: PixelHeart-deb
+          path: packages/*.deb

@@ -5,14 +5,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/khronossauce/theos:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build Tweak
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git make ldid libxml2-dev
+
+      - name: Install Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+
+      - name: Download SDK
+        run: |
+          cd $HOME/theos
+          git clone https://github.com/theos/sdks.git sdks
+
+      - name: Build and package
         run: |
           make clean
           make package
+
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:

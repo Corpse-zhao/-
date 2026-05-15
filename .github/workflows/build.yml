@@ -11,14 +11,13 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git make libxml2-dev build-essential
+          sudo apt-get install -y git make libxml2-dev build-essential wget
 
-      - name: Install ldid
+      - name: Download prebuilt ldid
         run: |
-          git clone https://github.com/ProcursusTeam/ldid.git ~/ldid
-          cd ~/ldid
-          ./make.sh
-          sudo cp ldid /usr/local/bin/
+          wget -O /tmp/ldid https://github.com/opa334/ldid/releases/latest/download/ldid-linux
+          chmod +x /tmp/ldid
+          sudo mv /tmp/ldid /usr/local/bin/
 
       - name: Install Theos
         run: |

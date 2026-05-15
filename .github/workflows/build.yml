@@ -5,13 +5,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/khronossauce/theos:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Theos Build
-        uses: Randomblock1/theos-action@v1
-        with:
-          theos-dir: theos
-          theos-sdks: https://github.com/theos/sdks
+      - name: Build Tweak
+        run: |
+          make clean
+          make package
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:

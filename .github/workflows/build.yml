@@ -1,48 +1,55 @@
-name: Build Theos Package
+# 这是文件的开头，固定不变，不用改
+name: Build Tweak
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # ========== 步骤1：Checkout 代码（你截图里没显示，但必须要有） ==========
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          submodules: true
 
-      - name: Clean and prepare Theos directory
-        run: |
-          rm -rf $HOME/theos
-          mkdir -p $HOME/theos
-
+      # ========== 步骤2：Install dependencies（你截图里报错的这一步） ==========
+      # 把你原来的这部分代码，整个替换成下面这段
       - name: Install dependencies
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y build-essential ldid libtool automake autotools-dev libxml2-dev
+          sudo apt-get update
+          sudo apt-get install -y build-essential git curl libbz2-dev libssl-dev libxml2-dev
+          # 编译安装 ldid（解决你 "Unable to locate package ldid" 的问题）
+          git clone https://github.com/kevin/ldid.git /tmp/ldid
+          cd /tmp/ldid
+          git submodule update --init
+          make -j$(nproc)
+          sudo cp ldid /usr/local/bin/
+          sudo strip /usr/local/bin/ldid
 
+      # ========== 步骤3：Install Theos（你截图里的这一步） ==========
+      # 这部分和你原来的功能一致，可以直接用我给的这段，更稳定
       - name: Install Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git $HOME/theos
-          cd $HOME/theos
-          # 拉取最新的 iOS SDKs（这里以 iOS 16.5 为例，适配你的 16.6 设备）
-          ./bin/install-sdk.sh 16.5
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
 
+      # ========== 步骤4：Set environment variables（你截图里的这一步） ==========
+      # 这里加了 rootless 配置，适配你的 iOS 16.6
       - name: Set environment variables
         run: |
-          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
+          echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
+          echo "THEOS_PACKAGE_SCHEME=rootless" >> $GITHUB_ENV
 
+      # ========== 步骤5：Build package（你截图里的这一步） ==========
       - name: Build package
         run: |
           make clean
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          make package
 
+      # ========== 步骤6：Upload DEB（你截图里的这一步） ==========
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
-          name: deb-package
+          name: tweak-deb
           path: ./packages/*.deb

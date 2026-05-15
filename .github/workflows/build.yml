@@ -1,43 +1,28 @@
-name: Build PixelHeart
+name: Build Tweak
 on:
   push:
     branches: [ main ]
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install Theos and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git make libxml2-dev build-essential curl
-
-      - name: Install ldid (from official repo)
-        run: |
-          curl -Lo ldid https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid-linux-x86_64
-          chmod +x ldid
-          sudo mv ldid /usr/local/bin/
-
-      - name: Install Theos
-        run: |
+          sudo apt-get install -y git make libxml2-dev build-essential
           git clone --recursive https://github.com/theos/theos.git ~/theos
+          cd ~/theos && git clone https://github.com/theos/sdks.git sdks
           echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Download SDK
-        run: |
-          cd $HOME/theos
-          git clone https://github.com/theos/sdks.git sdks
-
-      - name: Build Tweak
+      - name: Build package
         run: |
           make clean
-          make package
+          make package THEOS_PACKAGE_SCHEME=rootless
 
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
-          name: PixelHeart-deb
+          name: PixelHeart
           path: packages/*.deb
-          

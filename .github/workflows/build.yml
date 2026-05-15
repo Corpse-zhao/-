@@ -5,35 +5,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ios-theos/theos:latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git make libxml2-dev build-essential wget
-
-      - name: Download prebuilt ldid
-        run: |
-          wget -O /tmp/ldid https://github.com/opa334/ldid/releases/latest/download/ldid-linux
-          chmod +x /tmp/ldid
-          sudo mv /tmp/ldid /usr/local/bin/
-
-      - name: Install Theos
-        run: |
-          git clone --recursive https://github.com/theos/theos.git ~/theos
-          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-
-      - name: Download SDK
-        run: |
-          cd $HOME/theos
-          git clone https://github.com/theos/sdks.git sdks
-
-      - name: Build and package
+      - name: Build Tweak
         run: |
           make clean
           make package
-
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
